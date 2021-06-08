@@ -55,9 +55,78 @@
 
 ![image-20210606230609815](README.assets/image-20210606230609815.png)
 
+Теперь по аналогии с лабораторной работой 2 необходимо добавить реализацию методов CREATE, UPDATE, DELETE, которые будут создавать, обновлять и удалять записи из таблицы в БД.
+
+### Создание записей
+
+Метод должен принимать значения полей для новой записи и возвращать статус операции. Метод createStudent в классе com.labs.StudentResource будет использовать аннотацию `@POST` в соответствии с CRUD. Начальная реализация данного метода:
+
+```java
+    @POST
+    public String createStudent(
+            @QueryParam("studentName") String name,
+            @QueryParam("studentSurname") String surname,
+            @QueryParam("studentAge") String age,
+            @QueryParam("studentId") String studentId,
+            @QueryParam("studentMark") String mark) {
+
+        return new PostgreSQLDAO().createStudent(name, surname, age, studentId, mark);
+    }
+```
+
+Соответствующий метод в PostgreSQLDAO реализуется аналогично лабораторной работе 2:
+
+```java
+    public String createStudent(String name, String surname, String age, String studentId, String mark) {
+        String status = "-1";
+        try (Connection connection = ConnectionUtil.getConnection()) {
+            Statement stmt = connection.createStatement();
+
+            int result = stmt.executeUpdate("INSERT INTO students(name, surname, age, student_id, mark) values ('" +
+                    name + "', '" + surname + "', " + age + ", " + studentId + ", '" + mark + "');");
+            status = Integer.toString(result);
+
+        } catch (SQLException ex) {
+            Logger.getLogger(PostgreSQLDAO.class.getName()).log(Level.SEVERE, null, ex);
+        }
+
+        return status;
+    }
+```
+
+Для проверки сразу же добавим реализацию метода createStudent в класс ClientApp, причем используем также код для запроса данных из консоли из лабораторной работы 2.
+
+
+
+
+
+
+
+
+
 
 
 ## Реализация клиентского приложения
+
+Как было указано ранее, мы используем код из лабораторной работы 2, в котором будем запрашивать в консоли выбор CRUD метода через switch-case, а затем вызывать соответствующий метод. 
+
+Таким образом для метода CREATE мы вызываем метод createStudent() и передаем в качестве аргумента объект класса Client. Далее мы запрашиваем через консольный ввод необходимые параметры и простейшим образом проверяем то, что параметры не являются пустыми, а также, что определенные параметры могут быть приведены к целым числам. После этого выполняем запрос через queryParam и для получения ответа используем метод post():
+
+```java
+WebResource webResource = client.resource(URL);
+
+webResource = webResource.queryParam("studentName", name).queryParam("studentSurname",
+                        surname).queryParam("studentAge", age).queryParam("studentId",
+                        studentId).queryParam("studentMark", mark);
+
+ClientResponse response = webResource.accept(MediaType.APPLICATION_JSON).post(ClientResponse.class);
+if (response.getStatus() != ClientResponse.Status.OK.getStatusCode()) {
+	throw new IllegalStateException("Request failed");
+}
+System.out.println(response.getStatus());
+```
+
+Также получаем ответ и выводим статус ответа в консоль.
 
 
 

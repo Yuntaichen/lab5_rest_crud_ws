@@ -14,4 +14,17 @@ public class StudentResource {
         System.out.println(searchArgs);
         return new PostgreSQLDAO().getStudentsByFields(searchArgs);
     }
+
+    @POST
+    public String createStudent(
+            @QueryParam("studentName") String name,
+            @QueryParam("studentSurname") String surname,
+            @QueryParam("studentAge") String age,
+            @QueryParam("studentId") String studentId,
+            @QueryParam("studentMark") String mark) {
+
+        return new PostgreSQLDAO().createStudent(name, surname, age, studentId, mark);
+    }
+
+
 }

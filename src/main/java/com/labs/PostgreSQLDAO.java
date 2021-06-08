@@ -33,4 +33,20 @@ public class PostgreSQLDAO {
         }
         return students;
     }
+
+    public String createStudent(String name, String surname, String age, String studentId, String mark) {
+        String status = "-1";
+        try (Connection connection = ConnectionUtil.getConnection()) {
+            Statement stmt = connection.createStatement();
+
+            int result = stmt.executeUpdate("INSERT INTO students(name, surname, age, student_id, mark) values ('" +
+                    name + "', '" + surname + "', " + age + ", " + studentId + ", '" + mark + "');");
+            status = Integer.toString(result);
+
+        } catch (SQLException ex) {
+            Logger.getLogger(PostgreSQLDAO.class.getName()).log(Level.SEVERE, null, ex);
+        }
+
+        return status;
+    }
 }
