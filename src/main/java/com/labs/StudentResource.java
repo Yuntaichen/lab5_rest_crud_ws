@@ -22,9 +22,12 @@ public class StudentResource {
             @QueryParam("studentAge") String age,
             @QueryParam("studentId") String studentId,
             @QueryParam("studentMark") String mark) {
-
         return new PostgreSQLDAO().createStudent(name, surname, age, studentId, mark);
     }
 
+    @DELETE
+    public String deleteStudent(@QueryParam("rowId") String rowId) {
+        return new PostgreSQLDAO().deleteStudent(rowId);
+    }
 
 }

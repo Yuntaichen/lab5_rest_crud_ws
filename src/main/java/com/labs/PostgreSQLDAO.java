@@ -34,6 +34,18 @@ public class PostgreSQLDAO {
         return students;
     }
 
+    public String deleteStudent(String rowId) {
+        String status = "-1";
+        try (Connection connection = ConnectionUtil.getConnection()) {
+            Statement stmt = connection.createStatement();
+            int result = stmt.executeUpdate("DELETE FROM students WHERE id='" + rowId + "';");
+            status = Integer.toString(result);
+        } catch (SQLException ex) {
+            Logger.getLogger(PostgreSQLDAO.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return status;
+    }
+
     public String createStudent(String name, String surname, String age, String studentId, String mark) {
         String status = "-1";
         try (Connection connection = ConnectionUtil.getConnection()) {

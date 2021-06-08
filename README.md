@@ -96,7 +96,32 @@
 
 Для проверки сразу же добавим реализацию метода createStudent в класс ClientApp, причем используем также код для запроса данных из консоли из лабораторной работы 2.
 
+### Удаление записей
 
+Удаление также как и в лабораторной работе 2 будем производить при помощи полученного идентификатора записи rowId в таблице БД. Изначально добавляем соответствующий метод с аннотацией в класс StudentResource:
+
+```java
+@DELETE
+public String deleteStudent(@QueryParam("rowId") String rowId) {
+	return new PostgreSQLDAO().deleteStudent(rowId);
+}
+```
+
+Далее добавляем метод в PostgreSQLDAO:
+
+```java
+public String deleteStudent(String rowId) {
+	String status = "-1";
+	try (Connection connection = ConnectionUtil.getConnection()) {
+		Statement stmt = connection.createStatement();
+		int result = stmt.executeUpdate("DELETE FROM students WHERE id='" + rowId + "';");
+		status = Integer.toString(result);
+	} catch (SQLException ex) {
+		Logger.getLogger(PostgreSQLDAO.class.getName()).log(Level.SEVERE, null, ex);
+	}
+		return status;
+}
+```
 
 
 
@@ -128,7 +153,61 @@ System.out.println(response.getStatus());
 
 Также получаем ответ и выводим статус ответа в консоль.
 
+Реализация метода DELETE в классе клиента отличается от реализации из лабораторной работы 2 только запросом с методом `delete(ClientResponse.class)`:
 
+```java
+private static void deleteStudent(Client client) {
+
+        // Консольный ввод аргументов
+        Scanner scanner = new Scanner(System.in);
+
+        System.out.print("Input rowId (integer): ");
+        String rowId = scanner.nextLine();
+
+        try {
+            Integer.parseInt(rowId.trim());
+
+            WebResource webResource = client.resource(URL);
+            webResource = webResource.queryParam("rowId", rowId);
+            ClientResponse response = webResource.accept(MediaType.APPLICATION_JSON).delete(ClientResponse.class);
+            if (response.getStatus() != ClientResponse.Status.OK.getStatusCode()) {
+                throw new IllegalStateException("Request failed");
+            }
+            System.out.println(response.getStatus());
+
+        } catch (NumberFormatException ex) {
+            System.out.println("Incorrect rowId value! Input just one integer.");
+        }
+    }
+```
+
+
+
+Для проверки работы клиентского приложения дополнительно используем клиент pgAdmin, чтобы проверять результаты добавления, изменения и удаления записей в таблице БД напрямую:
+
+![image-20210608224422526](README.assets/image-20210608224422526.png)
+
+Например, удалим запись с идентификатором 8, для чего запускаем сначала сервис, а затем клиент и выполняем соответствующий запрос через консоль:
+
+![image-20210608224602057](README.assets/image-20210608224602057.png)
+
+Проверяем результат через pgAdmin:
+
+![image-20210608224632545](README.assets/image-20210608224632545.png)
+
+Теперь точно также добавим новую запись с полями:
+
+* name = Иван
+* surname = Иванов
+* age = 20
+* studentId = 930043
+* mark = хорошо
+
+![image-20210608225736059](README.assets/image-20210608225736059.png)
+
+Проверяем через pgAdmin:
+
+![image-20210608225804060](README.assets/image-20210608225804060.png)
 
 
 

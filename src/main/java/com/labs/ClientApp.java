@@ -40,7 +40,7 @@ public class ClientApp {
                         System.out.println("That's it! You can choose another CRUD method or input 'exit' for exit");
                         break;
                     case ("DELETE"):
-//                        deleteStudentRowById(studentService);
+                        deleteStudent(client);
                         System.out.println("That's it! You can choose another CRUD method or input 'exit' for exit");
                         break;
                     case ("exit"):
@@ -56,6 +56,28 @@ public class ClientApp {
 
         scanner.close();
 
+    }
+
+    private static void deleteStudent(Client client) {
+        // Консольный ввод аргументов
+        Scanner scanner = new Scanner(System.in);
+        System.out.print("Input rowId (integer): ");
+        String rowId = scanner.nextLine();
+
+        try {
+            Integer.parseInt(rowId.trim());
+
+            WebResource webResource = client.resource(URL);
+            webResource = webResource.queryParam("rowId", rowId);
+            ClientResponse response = webResource.accept(MediaType.APPLICATION_JSON).delete(ClientResponse.class);
+            if (response.getStatus() != ClientResponse.Status.OK.getStatusCode()) {
+                throw new IllegalStateException("Request failed");
+            }
+            System.out.println(response.getStatus());
+
+        } catch (NumberFormatException ex) {
+            System.out.println("Incorrect rowId value! Input just one integer.");
+        }
     }
 
     private static void createStudent(Client client) {
