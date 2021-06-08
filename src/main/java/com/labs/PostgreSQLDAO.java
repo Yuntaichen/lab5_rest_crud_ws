@@ -34,6 +34,21 @@ public class PostgreSQLDAO {
         return students;
     }
 
+    public String updateStudent(String rowId, List<String> updateArgs) {
+        String status = "-1";
+        String updateFields = String.join(", ", updateArgs);
+
+        try (Connection connection = ConnectionUtil.getConnection()) {
+            Statement stmt = connection.createStatement();
+            int rs = stmt.executeUpdate("UPDATE students SET " + updateFields + " WHERE id=" + rowId + ";");
+            status = Integer.toString(rs);
+        } catch (SQLException ex) {
+            Logger.getLogger(PostgreSQLDAO.class.getName()).log(Level.SEVERE, null, ex);
+        }
+
+        return status;
+    }
+
     public String deleteStudent(String rowId) {
         String status = "-1";
         try (Connection connection = ConnectionUtil.getConnection()) {

@@ -123,11 +123,49 @@ public String deleteStudent(String rowId) {
 }
 ```
 
+### Изменение записей
 
+Изменение также как и в лабораторной работе 2 будем производить при помощи полученного идентификатора записи rowId и набора полей для изменения. Изначально добавляем соответствующий метод с аннотацией PUT в класс StudentResource:
 
+```java
+@PUT
+public String updateStudent(
+    @QueryParam("rowId") String rowId,
+    @QueryParam("studentName") String name,
+    @QueryParam("studentSurname") String surname,
+    @QueryParam("studentAge") String age,
+    @QueryParam("studentId") String studentId,
+    @QueryParam("studentMark") String mark) {
 
+	List<String> updateArgs = new ArrayList<>();
+	if (name != null && !name.trim().isEmpty()) updateArgs.add("name = '" + name + "'");
+	if (surname != null && !surname.trim().isEmpty()) updateArgs.add("surname = '" + surname + "'");
+	if (age != null && !age.trim().isEmpty()) updateArgs.add("age = '" + age + "'");
+    if (studentId != null && !studentId.trim().isEmpty()) updateArgs.add("student_id = '" + studentId + "'");
+	if (mark != null && !mark.trim().isEmpty()) updateArgs.add("mark = '" + mark + "'");
 
+	return new PostgreSQLDAO().updateStudent(rowId, updateArgs);
+}
+```
 
+Основное отличие заключается лишь в аннотации данного метода. Далее используем метод updateStudent класса PostgreSQLDAO из лабораторной работы 2:
+
+```java
+public String updateStudent(String rowId, List<String> updateArgs) {
+        String status = "-1";
+        String updateFields = String.join(", ", updateArgs);
+
+        try (Connection connection = ConnectionUtil.getConnection()) {
+            Statement stmt = connection.createStatement();
+            int rs = stmt.executeUpdate("UPDATE students SET " + updateFields + " WHERE id=" + rowId + ";");
+            status = Integer.toString(rs);
+        } catch (SQLException ex) {
+            Logger.getLogger(PostgreSQLDAO.class.getName()).log(Level.SEVERE, null, ex);
+        }
+
+        return status;
+}
+```
 
 
 
@@ -181,7 +219,21 @@ private static void deleteStudent(Client client) {
     }
 ```
 
+Для реализации метода UPDATE в классе клиента используем код из лабораторной работы 2, но внесем изменения в обращение к сервису:
 
+```java
+...
+WebResource webResource = client.resource(URL);
+webResource = webResource.queryParam("rowId", rowIDString).queryParam("studentName", name).queryParam("studentSurname",surname).queryParam("studentAge", age).queryParam("studentId", studentId).queryParam("studentMark", mark);
+ClientResponse response = webResource.accept(MediaType.APPLICATION_JSON).put(ClientResponse.class);
+if (response.getStatus() != ClientResponse.Status.OK.getStatusCode()) {
+	throw new IllegalStateException("Request failed");
+}
+System.out.println(response.getStatus());
+...
+```
+
+При запросе теперь мы используем метод `put`, который и позволяет указать на необходимости изменения записи в БД. 
 
 Для проверки работы клиентского приложения дополнительно используем клиент pgAdmin, чтобы проверять результаты добавления, изменения и удаления записей в таблице БД напрямую:
 
@@ -209,5 +261,13 @@ private static void deleteStudent(Client client) {
 
 ![image-20210608225804060](README.assets/image-20210608225804060.png)
 
+Теперь обновим добавленную запись - изменим имя и фамилию на Петр Петров:
 
+![image-20210608233642567](README.assets/image-20210608233642567.png)
+
+Выполняем проверку через pgAdmin:
+
+![image-20210608233711075](README.assets/image-20210608233711075.png)
+
+Таким образом были реализованы методы создания, изменения и удаления записей через REST-сервис и соответствующим образом обновлён консольный клиент. Обработка ошибок производится в следующей лабораторной работе. 
 
